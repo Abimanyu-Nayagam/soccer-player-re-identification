@@ -5,8 +5,8 @@ import torchreid
 import sys
 
 # Load a pre-trained YOLOv8 model
-model = YOLO('./models/best.pt')
-video_path = './Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
+model = YOLO('../models/best.pt')
+video_path = '../Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
 
 feature_model = torchreid.models.build_model(
     name='osnet_x0_25',
