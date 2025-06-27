@@ -6,7 +6,7 @@ For custom implentation, the combination of jersey number and jersey color shoul
 
 # Methods used:
 
-1. DeepSort with custom ID assignment based on location of previous box
+1. DeepSort with slight modification: ID assignment by comparing centres of previous box
 2. ByteTrack implementation
 3. A custom color detection + jersey number detection from bounding box of player using Optical Character Recognition (easyOCR)
 
