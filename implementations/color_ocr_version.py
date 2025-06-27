@@ -3,28 +3,28 @@ import numpy as np
 from collections import Counter
 from ultralytics import YOLO
 from easyocr import Reader
-from basicsr.archs.rrdbnet_arch import RRDBNet
-from realesrgan import RealESRGANer
+# from basicsr.archs.rrdbnet_arch import RRDBNet
+# from realesrgan import RealESRGANer
 import matplotlib.pyplot as plt
 import cv2
-# import keras_ocr
-yolo_model = YOLO('../models/best.pt')
+yolo_model = YOLO('./models/best.pt')
 
-model_path = '../models/RealESRGAN_x4plus.pth'
+yolo_model.eval().to('cuda')
 
-model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
+# model_path = './models/RealESRGAN_x4plus.pth'
 
-upsampler = RealESRGANer(
-    scale=4,
-    model_path=model_path,
-    model=model,
-    tile=0,
-    pre_pad=0,
-    half=False,  # ✅ Use half precision
-    device=torch.device('cuda')  # ✅ Use GPU
-)
-# Build the pipeline (loads detector and recognizer models)
-# pipeline = keras_ocr.pipeline.Pipeline()
+# model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
+
+# upsampler = RealESRGANer(
+#     scale=4,
+#     model_path=model_path,
+#     model=model,
+#     tile=0,
+#     pre_pad=0,
+#     half=False,  # ✅ Use half precision
+#     device=torch.device('cuda')  # ✅ Use GPU
+# )
+
 reader = Reader(['en'], gpu=True)
 video_path = './Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
 
@@ -62,7 +62,6 @@ fourcc = cv2.VideoWriter_fourcc(*'H264')
 
 fps = cap.get(cv2.CAP_PROP_FPS)
 
-# max_frames = int(fps * max_duration)
 frame_count = 0
 
 # ✅ new: dynamically grab input’s FPS and frame size
@@ -70,14 +69,14 @@ fps    = cap.get(cv2.CAP_PROP_FPS) or 30.0
 width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-output_path = 'output_15sec_input_720p.mp4'
+# output_path = 'output_15sec_input_720p.mp4'
 
-out = cv2.VideoWriter(
-        output_path,
-        fourcc,
-        fps,
-        (width, height)
-    )
+# out = cv2.VideoWriter(
+#         output_path,
+#         fourcc,
+#         fps,
+#         (width, height)
+#     )
 
 frame_count = 0
 while cap.isOpened():
@@ -90,7 +89,7 @@ while cap.isOpened():
     results = yolo_model(frame)[0]
     frame_count += 1
     # if frame_count < 50:
-        # continue
+    #     continue
     # Draw boxes
     for box in results.boxes:
         cls_id = int(box.cls[0])
@@ -115,10 +114,10 @@ while cap.isOpened():
 
         upscale_method = 1
 
-        if upscale_method == 0:
-            crop, _ = upsampler.enhance(crop, outscale=4)
+        # if upscale_method == 0:
+        #     crop, _ = upsampler.enhance(crop, outscale=4)
 
-        elif upscale_method == 1:
+        if upscale_method == 1:
             # Upscale by 2×
             scale = 10
             crop = cv2.resize(crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
@@ -149,8 +148,6 @@ while cap.isOpened():
         # cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
         cv2.putText(frame, f'{label}', (x1, y1 - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-
-    previous_crops = crops.copy()
 
     cv2.imshow(title, frame)
     # Write processed frame to output video

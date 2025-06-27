@@ -1,21 +1,15 @@
 from ultralytics import YOLO
 from deep_sort_realtime.deepsort_tracker import DeepSort
 import cv2
-import torchreid
 import sys
 
 # Load a pre-trained YOLOv8 model
-model = YOLO('../models/best.pt')
-video_path = '../Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
+model = YOLO('./models/best.pt')
+video_path = './Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
 
-feature_model = torchreid.models.build_model(
-    name='osnet_x0_25',
-    num_classes=1000,
-    pretrained=True
-)
 model.eval().to('cuda')
 
-tracker = DeepSort(max_age=5, n_init=10, max_cosine_distance=0.8, half=True, bgr=True, embedder="torchreid", embedder_model_name="osnet_ain_x1_0")
+tracker = DeepSort(max_age=5, n_init=10, max_cosine_distance=0.8, half=True, bgr=True)
 
 # Check if the model is loaded correctly
 if model is None:
