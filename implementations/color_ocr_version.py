@@ -1,14 +1,16 @@
 import torch
 import numpy as np
 from collections import Counter
+import matplotlib.pyplot as plt
+import cv2
 from ultralytics import YOLO
 from easyocr import Reader
 # from basicsr.archs.rrdbnet_arch import RRDBNet
 # from realesrgan import RealESRGANer
-import matplotlib.pyplot as plt
-import cv2
+
 yolo_model = YOLO('./models/best.pt')
 
+# Moving the model to GPU
 yolo_model.eval().to('cuda')
 
 # model_path = './models/RealESRGAN_x4plus.pth'
@@ -25,9 +27,11 @@ yolo_model.eval().to('cuda')
 #     device=torch.device('cuda')  # ✅ Use GPU
 # )
 
+# Initialize EasyOCR reader
 reader = Reader(['en'], gpu=True)
 video_path = './Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
 
+# Function to detect color from BGR tuple using HSV color space
 def hsv_to_color_name_from_tuple(bgr_tuple):
     # Convert BGR tuple to a 1x1 image for OpenCV color conversion
     bgr_array = np.array([[bgr_tuple]], dtype=np.uint8)
@@ -58,13 +62,14 @@ def hsv_to_color_name_from_tuple(bgr_tuple):
 # Open video
 cap = cv2.VideoCapture(video_path)  # or 0 for webcam
 
+# Configure video writer
 fourcc = cv2.VideoWriter_fourcc(*'H264')
 
 fps = cap.get(cv2.CAP_PROP_FPS)
 
 frame_count = 0
 
-# ✅ new: dynamically grab input’s FPS and frame size
+# dynamically grab input’s FPS and frame size
 fps    = cap.get(cv2.CAP_PROP_FPS) or 30.0
 width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -93,16 +98,19 @@ while cap.isOpened():
     # Draw boxes
     for box in results.boxes:
         cls_id = int(box.cls[0])
+        # Filter for just players
         if cls_id!=2:
             continue
         x1, y1, x2, y2 = map(int, box.xyxy[0])  # bounding box
-        # Create a crop of the detected object
+
+        # Create a crop of the detected object to upscale later
         crop = frame[y1:y2, x1:x2]
 
-        # Step 2: Reshape image to a list of pixels
+        # Processing for finding the most common color in the crop
+        # Reshape image to a list of pixels
         pixels = crop.reshape(-1, 3)  # shape becomes (num_pixels, 3)
 
-        # Step 3: Convert each pixel to a tuple (hashable for counting)
+        # Convert each pixel to a tuple (hashable for counting)
         pixel_tuples = [tuple(pixel) for pixel in crop.reshape(-1, 3)]
         
         most_common_pixel = Counter(pixel_tuples).most_common(1)[0][0]
@@ -128,6 +136,7 @@ while cap.isOpened():
         # clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
         # gray_img_e = clahe.apply(gray_img)
 
+        # Create list of detected texts and confidences
         texts = []
         confs = []
 

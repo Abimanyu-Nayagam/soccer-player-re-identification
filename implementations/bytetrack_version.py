@@ -7,6 +7,7 @@ import numpy as np
 model = YOLO('./models/best.pt')
 video_path = './Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
 
+# Initialize ByteTrack tracker and annotators
 tracker = sv.ByteTrack()
 box_annotator = sv.BoxAnnotator()
 label_annotator = sv.LabelAnnotator()

@@ -7,9 +7,15 @@ import sys
 model = YOLO('./models/best.pt')
 video_path = './Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
 
+# Move model to GPU if available
 model.eval().to('cuda')
 
-tracker = DeepSort(max_age=5, n_init=10, max_cosine_distance=0.8, half=True, bgr=True)
+# Initialize Deep SORT tracker with:
+# 5 frames maximum age after which a track is deleted
+# 10 frames minimum number of detections before a track is confirmed
+# 0.8 maximum cosine distance for matching detections to tracks
+# bgr=True to use BGR color space (OpenCV default)
+tracker = DeepSort(max_age=5, n_init=10, max_cosine_distance=0.8, bgr=True)
 
 # Check if the model is loaded correctly
 if model is None:
@@ -29,11 +35,13 @@ while True:
     if not ret:
         print("End of video or error reading frame.")
         break
-    
+
+    # Every 3rd frame is skipped to reduce processing load
     if frame_count == 1 or frame_count % 3 != 0:
         results = model(frame)
         boxes = results[0].boxes if results else None
 
+        # Gather detections
         detections = []
 
         print("Gathering detections...")
@@ -45,6 +53,7 @@ while True:
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             w, h = x2 - x1, y2 - y1
             cls = box.cls[0]
+            # Filter for class 2 (players)
             if cls != 2:
                 continue
             conf = box.conf[0]
