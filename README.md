@@ -35,7 +35,7 @@ python ./implementations/deepsort_version.py
 
 Running the custom color detection + OCR version
 ```
-python ./implementations/deepsort_version.py
+python ./implementations/color_ocr_version.py
 ```
 
 Running the ByteTrack implementation
