@@ -1,4 +1,4 @@
-# soccer-player-re-identification
+# Soccer Player Re-Identification in the same feed
 
 The goal is to locate players in the clip and assign an ID to them based on the initial few frames, and assign the same ID for a player in case they leave the frame and re-appear.
 
