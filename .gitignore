@@ -1,5 +1,5 @@
 /Assignment Materials
-/models
+*.pt
 /*.mp4
 /venv
 /venv2
