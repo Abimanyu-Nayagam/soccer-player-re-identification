@@ -1,6 +1,4 @@
-/Assignment Materials
 *.pt
-/*.mp4
 /venv
 /venv2
 /__pycache__
