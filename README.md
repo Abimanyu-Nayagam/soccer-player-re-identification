@@ -11,6 +11,7 @@ For custom implentation, the combination of jersey number and jersey color shoul
 3. A custom color detection + jersey number detection from bounding box of player using Optical Character Recognition (easyOCR)
 
 # How to run:
+Download the model from here: https://drive.google.com/file/d/1-5fOSHOSB9UXyP_enOoZNAMScrePVcMD/view
 
 Clone the repository:
 ```
