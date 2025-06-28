@@ -155,4 +155,4 @@ zipp
 torch==2.0.1+cu118
 torchvision
 torchaudio
-numpy>=1.26
+numpy==1.26

@@ -40,17 +40,17 @@ pip install -r requirements.txt
 
 Running the Deepsort implementation:
 ```
-python ./implementations/deepsort_version.py
+python ./src/implementations/deepsort_version.py
 ```
 
 Running the custom color detection + OCR version
 ```
-python ./implementations/color_ocr_version.py
+python ./src/implementations/color_ocr_version.py
 ```
 
 Running the ByteTrack implementation
 ```
-python ./implementations/bytetrack_version.py
+python ./src/implementations/bytetrack_version.py
 ```
 
 Once execution is completed, output is saved in outputs folder

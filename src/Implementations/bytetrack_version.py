@@ -1,11 +1,21 @@
+import sys
+from pathlib import Path
 from ultralytics import YOLO
 import cv2
 import supervision as sv
 import numpy as np
+# Resolve the root of the project relative to this file's location
+ROOT_DIR = Path(__file__).resolve().parents[2]  # 2 levels up from implementations/
+
+# Add the project root to sys.path
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+# Now you can import from configs/
+from configs.config import MODEL_PATH, VIDEO_PATH
 
 # Load a pre-trained YOLOv8 model
-model = YOLO('./models/best.pt')
-video_path = './Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
+model = YOLO(MODEL_PATH)
 
 # Initialize ByteTrack tracker and annotators
 tracker = sv.ByteTrack()
@@ -29,16 +39,10 @@ def callback(frame: np.ndarray, _: int) -> np.ndarray:
         frame.copy(), detections=detections)
     res =  label_annotator.annotate(
         annotated_frame, detections=detections, labels=labels)
-    cv2.imshow("Frame", res)
-    key = cv2.waitKey(0)  # Wait for key press before continuing
-    if key == ord('q'):
-        # Optional: quit entire process (not just frame skipping)
-        print("Early exit triggered.")
-        exit()
     return res
 
 sv.process_video(
-    source_path=video_path,
+    source_path=VIDEO_PATH,
     target_path="./outputs/bytetrack_result.mp4",
     callback=callback
 )

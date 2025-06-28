@@ -1,28 +1,39 @@
+import os
+import sys
+from pathlib import Path
 from ultralytics import YOLO
 from deep_sort_realtime.deepsort_tracker import DeepSort
 import cv2
-import torchreid
+
+# Resolve the root of the project relative to this file's location
+ROOT_DIR = Path(__file__).resolve().parents[2]  # 2 levels up from implementations/
+
+# Add the project root to sys.path
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+# Now you can import from configs/
+from configs.config import MODEL_PATH, VIDEO_PATH
 
 # Load a pre-trained YOLOv8 model
-model = YOLO('./models/best.pt')
-video_path = './Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
+model = YOLO(MODEL_PATH)
 
-
-feature_model = torchreid.models.build_model(
-    name='osnet_x0_25',
-    num_classes=1000,
-    pretrained=True
-)
+# Move model to GPU if available
 model.eval().to('cuda')
 
-tracker = DeepSort(max_age=5, n_init=10, max_cosine_distance=0.8, half=True, bgr=True, embedder="torchreid", embedder_model_name="osnet_ain_x1_0")
+# Initialize Deep SORT tracker with:
+# 5 frames maximum age after which a track is deleted
+# 10 frames minimum number of detections before a track is confirmed
+# 0.8 maximum cosine distance for matching detections to tracks
+# bgr=True to use BGR color space (OpenCV default)
+tracker = DeepSort(max_age=5, n_init=10, max_cosine_distance=0.8, bgr=True)
 
 # Check if the model is loaded correctly
 if model is None:
     print("Error: Model not loaded.")
     sys.exit(1)
 
-cap = cv2.VideoCapture(video_path)
+cap = cv2.VideoCapture(VIDEO_PATH)
 if not cap.isOpened():
     print("Error: Could not open video.")
     exit()
@@ -35,11 +46,13 @@ while True:
     if not ret:
         print("End of video or error reading frame.")
         break
-    
+
+    # Every 3rd frame is skipped to reduce processing load
     if frame_count == 1 or frame_count % 3 != 0:
         results = model(frame)
         boxes = results[0].boxes if results else None
 
+        # Gather detections
         detections = []
 
         print("Gathering detections...")
@@ -51,6 +64,7 @@ while True:
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             w, h = x2 - x1, y2 - y1
             cls = box.cls[0]
+            # Filter for class 2 (players)
             if cls != 2:
                 continue
             conf = box.conf[0]
