@@ -27,8 +27,15 @@ def callback(frame: np.ndarray, _: int) -> np.ndarray:
 
     annotated_frame = box_annotator.annotate(
         frame.copy(), detections=detections)
-    return label_annotator.annotate(
+    res =  label_annotator.annotate(
         annotated_frame, detections=detections, labels=labels)
+    cv2.imshow("Frame", res)
+    key = cv2.waitKey(0)  # Wait for key press before continuing
+    if key == ord('q'):
+        # Optional: quit entire process (not just frame skipping)
+        print("Early exit triggered.")
+        exit()
+    return res
 
 sv.process_video(
     source_path=video_path,

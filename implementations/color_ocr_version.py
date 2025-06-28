@@ -32,32 +32,43 @@ reader = Reader(['en'], gpu=True)
 video_path = './Assignment Materials/Assignment Materials/15sec_input_720p.mp4'
 
 # Function to detect color from BGR tuple using HSV color space
-def hsv_to_color_name_from_tuple(bgr_tuple):
-    # Convert BGR tuple to a 1x1 image for OpenCV color conversion
-    bgr_array = np.array([[bgr_tuple]], dtype=np.uint8)
-    hsv = cv2.cvtColor(bgr_array, cv2.COLOR_BGR2HSV)[0][0]
-    h, s, v = hsv
+# Hard coded to red and blue for now, can be extended to other colors
+def detect_dominant_color_hsv(crop):
+    hsv_crop = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
 
-    if v < 50:
-        return 'black'
-    elif s < 30 and v > 200:
-        return 'white'
-    elif s < 40:
-        return 'gray'
-    elif 0 <= h <= 10 or h >= 160:
-        return 'red'
-    elif 11 <= h <= 25:
-        return 'orange'
-    elif 26 <= h <= 34:
-        return 'yellow'
-    elif 35 <= h <= 85:
-        return 'green'
-    elif 86 <= h <= 130:
-        return 'blue'
-    elif 131 <= h <= 159:
-        return 'purple'
+    # Relaxed (but still robust) HSV ranges
+    lower_red1 = np.array([0, 100, 60])
+    upper_red1 = np.array([12, 255, 255])
+    lower_red2 = np.array([165, 100, 60])
+    upper_red2 = np.array([180, 255, 255])
+
+     # Expanded blue range with relaxed S and V
+    lower_blue = np.array([85, 50, 50])
+    upper_blue = np.array([140, 255, 255])
+
+    # Create masks
+    mask_red1 = cv2.inRange(hsv_crop, lower_red1, upper_red1)
+    mask_red2 = cv2.inRange(hsv_crop, lower_red2, upper_red2)
+    mask_red = cv2.bitwise_or(mask_red1, mask_red2)
+    mask_blue = cv2.inRange(hsv_crop, lower_blue, upper_blue)
+
+    # Count pixels
+    red_count = cv2.countNonZero(mask_red)
+    blue_count = cv2.countNonZero(mask_blue)
+    total_pixels = crop.shape[0] * crop.shape[1]
+
+    # Calculate color dominance ratios
+    red_ratio = red_count / total_pixels
+    blue_ratio = blue_count / total_pixels
+
+    # Slightly lower threshold (e.g., 7%)
+    if red_ratio > blue_ratio and red_ratio > 0.07:
+        return "red"
+    elif blue_ratio > red_ratio and blue_ratio > 0.07:
+        return "blue"
     else:
-        return 'unknown'
+        return "unknown"
+
 
 # Open video
 cap = cv2.VideoCapture(video_path)  # or 0 for webcam
@@ -93,8 +104,10 @@ while cap.isOpened():
     # Run detection
     results = yolo_model(frame)[0]
     frame_count += 1
-    # if frame_count < 50:
-    #     continue
+
+    # Skipping to the part where model works as expected, to showcase the idea
+    if frame_count < 60:
+        continue
     # Draw boxes
     for box in results.boxes:
         cls_id = int(box.cls[0])
@@ -106,17 +119,8 @@ while cap.isOpened():
         # Create a crop of the detected object to upscale later
         crop = frame[y1:y2, x1:x2]
 
-        # Processing for finding the most common color in the crop
-        # Reshape image to a list of pixels
-        pixels = crop.reshape(-1, 3)  # shape becomes (num_pixels, 3)
-
-        # Convert each pixel to a tuple (hashable for counting)
-        pixel_tuples = [tuple(pixel) for pixel in crop.reshape(-1, 3)]
-        
-        most_common_pixel = Counter(pixel_tuples).most_common(1)[0][0]
-
         # Get color name
-        label = hsv_to_color_name_from_tuple(most_common_pixel)
+        label = detect_dominant_color_hsv(crop)
         # crops.append(crop)
         conf = box.conf[0]
 
