@@ -12,6 +12,16 @@ For custom implentation, the combination of jersey number and jersey color shoul
 
 # How to run:
 
+Clone the repository:
+```
+git clone https://github.com/Abimanyu-Nayagam/soccer-player-re-identification.git
+```
+
+Once cloned, navigate into the directory:
+```
+cd soccer-player-re-identification
+```
+
 Creating the environment:
 
 ```
